@@ -37,6 +37,8 @@ use crate::seed_entry::SeedEntryState;
 
 use crate::restore_or_generate;
 
+use crate::widgets::textbox::TextBox;
+
 use rand::{CryptoRng, Rng};
 
 use schnorrkel::{
@@ -177,7 +179,7 @@ impl <P: Platform> UIState<P> {
             Screen::PinEntry => {
                 let res = self.platform.handle_pin_event(point, h)?;
                 out = res.request;/*
-                // TODO this properly, expo hack 
+                // TODO this properly, expo hack
                 new_screen = match res.state {
                     Some(a) => match self.platform.transaction() {
                         Some(_) => Some(Screen::ShowTransaction),
@@ -288,51 +290,56 @@ impl <P: Platform> UIState<P> {
         let display = self.platform.display();
         let clear = PrimitiveStyle::with_fill(BinaryColor::Off);
         display.bounding_box().into_styled(clear).draw(display)?;
-        match self.screen {
-            Screen::PinEntry => {
-                self.platform.draw_pincode()?;
-            }
-            Screen::OnboardingRestoreOrGenerate => {
-                restore_or_generate::draw(display)?;
-            }
-            Screen::OnboardingRestore(ref entry) => {
-                entry.draw(display)?;
-            }
-            Screen::Locked => {
-                let linestyle = PrimitiveStyle::with_stroke(BinaryColor::On, 5);
-                Line::new(
-                    Point::new(0, 0),
-                    Point::new(SCREEN_SIZE_X as i32, SCREEN_SIZE_Y as i32),
-                )
-                .into_styled(linestyle)
-                .draw(display)?;
-                Line::new(
-                    Point::new(SCREEN_SIZE_X as i32, 0),
-                    Point::new(0, SCREEN_SIZE_Y as i32),
-                )
-                .into_styled(linestyle)
-                .draw(display)?;
-            }
-            Screen::OnboardingBackup => {
-                self.platform.draw_backup()?;
-            }
-            Screen::PinRepeat => {
-                self.platform.draw_pincode()?;
-            },
-            Screen::ShowTransaction => {
-                self.platform.draw_transaction()?
-            },
-            Screen::ShowExtension => {
-                self.platform.draw_extensions()?
-            }
-            Screen::QRSignature => {
-                self.platform.draw_signature_qr()?
-            },
-            Screen::QRAddress => {
-                self.platform.draw_address_qr()?
-            },
-            _ => {}
-        }
+
+        let center = (display.bounding_box().size.width/2, display.bounding_box().size.height/2);
+
+        let textbox = TextBox::new("kampela", (100, 100));
+        textbox.draw(display, (center.0-50, center.1-50));
+        // match self.screen {
+        //     Screen::PinEntry => {
+        //         self.platform.draw_pincode()?;
+        //     }
+        //     Screen::OnboardingRestoreOrGenerate => {
+        //         restore_or_generate::draw(display)?;
+        //     }
+        //     Screen::OnboardingRestore(ref entry) => {
+        //         entry.draw(display)?;
+        //     }
+        //     Screen::Locked => {
+        //         let linestyle = PrimitiveStyle::with_stroke(BinaryColor::On, 5);
+        //         Line::new(
+        //             Point::new(0, 0),
+        //             Point::new(SCREEN_SIZE_X as i32, SCREEN_SIZE_Y as i32),
+        //         )
+        //         .into_styled(linestyle)
+        //         .draw(display)?;
+        //         Line::new(
+        //             Point::new(SCREEN_SIZE_X as i32, 0),
+        //             Point::new(0, SCREEN_SIZE_Y as i32),
+        //         )
+        //         .into_styled(linestyle)
+        //         .draw(display)?;
+        //     }
+        //     Screen::OnboardingBackup => {
+        //         self.platform.draw_backup()?;
+        //     }
+        //     Screen::PinRepeat => {
+        //         self.platform.draw_pincode()?;
+        //     },
+        //     Screen::ShowTransaction => {
+        //         self.platform.draw_transaction()?
+        //     },
+        //     Screen::ShowExtension => {
+        //         self.platform.draw_extensions()?
+        //     }
+        //     Screen::QRSignature => {
+        //         self.platform.draw_signature_qr()?
+        //     },
+        //     Screen::QRAddress => {
+        //         self.platform.draw_address_qr()?
+        //     },
+        //     _ => {}
+        // }
         Ok(())
     }
 }
