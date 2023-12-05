@@ -5,6 +5,8 @@ use alloc::{format, string::String, vec::Vec};
 #[cfg(feature="std")]
 use std::{format, string::String, vec::Vec};
 
+// use crate::stdwrap::*;
+
 use embedded_graphics::{pixelcolor::BinaryColor, prelude::{DrawTarget, Point}};
 use rand::{CryptoRng, Rng};
 
@@ -65,7 +67,7 @@ pub trait Platform {
 
     /// Set new seed
     fn set_entropy(&mut self, e: &[u8]);
-    
+
     /// Getter for seed
     fn entropy(&self) -> &[u8];
 
@@ -139,7 +141,7 @@ pub trait Platform {
 
     fn draw_address_qr(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
         //let (s, d) = self.address();
-       
+
         let line1 = format!("substrate:0x{}", hex::encode(self.public().expect("no entropy stored, no address could be shown")));
 
         qr::draw(&line1.as_bytes(), self.display())

@@ -2,50 +2,78 @@
 
 
 
-use crate::widgets::widget::Widget;
+use crate::widgets::{widget::Widget, drawable::Drawable, interactive::Interactive};
 
-use crate::stdwrap::Std;
+
+use crate::stdwrap::String;
+
+
+
+
+use embedded_graphics::{
+    mono_font::{
+        ascii::{FONT_10X20, FONT_4X6, FONT_6X10},
+        MonoTextStyle,
+    },
+    prelude::*,
+    primitives::{
+        Circle, PrimitiveStyle, Rectangle,
+    },
+    Drawable as EGDrawable,
+};
+
+use embedded_graphics_core::{
+    draw_target::DrawTarget,
+    geometry::{Dimensions, Point, Size},
+    pixelcolor::BinaryColor,
+};
+
+
+use embedded_text::{
+    alignment::{HorizontalAlignment, VerticalAlignment},
+    style::TextBoxStyleBuilder,
+    TextBox as ETTextBox,
+};
 
 pub struct TextBox {
-    text: Std::String,
+    text: String,
     size: (u16, u16),
 }
 
+impl Widget for TextBox {}
 
-impl Widget for TextBox {
-    fn draw(&self, display: &mut Display, pos: (u16, u16)) {
+impl Drawable for TextBox
+{
+    fn draw<Display: DrawTarget<Color = BinaryColor>>(&self, display: &mut Display, pos: (u16, u16)) -> Result<(), <Display as DrawTarget>::Error> {
         let character_style = MonoTextStyle::new(&FONT_10X20, BinaryColor::On);
         let textbox_style = TextBoxStyleBuilder::new()
             .alignment(HorizontalAlignment::Center)
             .vertical_alignment(VerticalAlignment::Middle)
             .build();
 
-        let restore = Rectangle::new(
-            Point::new(0, 50),
-            Size::new(SCREEN_SIZE_X / 2, SCREEN_SIZE_Y - 50),
+        let rect = Rectangle::new(
+            Point::new(pos.0 as i32, pos.1 as i32),
+            Size::new(self.size.0 as u32, self.size.1 as u32),
         );
-        let generate = Rectangle::new(
-            Point::new(SCREEN_SIZE_X as i32 / 2, 50),
-            Size::new(SCREEN_SIZE_X / 2, SCREEN_SIZE_Y - 50),
-        );
-        let header = Rectangle::new(Point::new(0, 0), Size::new(SCREEN_SIZE_X, 50));
-        TextBox::with_textbox_style("restore", restore, character_style, textbox_style)
+        let _ = ETTextBox::with_textbox_style(self.text.as_str(), rect, character_style, textbox_style)
             .draw(display)?;
-        TextBox::with_textbox_style("generate", generate, character_style, textbox_style)
-            .draw(display)?;
-        TextBox::with_textbox_style(
-            "restore or generate?",
-            header,
-            character_style,
-            textbox_style,
-        )
-        .draw(display)?;
+        Ok(())
+    }
+
+    fn get_size(&self) -> (u16, u16) {
+        self.size
     }
 
 }
 
-impl for TextBox {
-    pub fn new(text: String, bounds: (i16, i16)) -> Self {
-
+impl Interactive for TextBox {
+    fn handle_tap(&mut self, rel_pos: (u16, u16)) {}
+}
+impl TextBox {
+    pub fn new(text: String, bounds: (u16, u16)) -> Self {
+        Self {
+            text: text,
+            size: bounds,
+        }
     }
 }

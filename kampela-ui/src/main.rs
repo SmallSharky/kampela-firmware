@@ -1,7 +1,7 @@
 //! This is simulator to develop Kampela UI mocks
 #![cfg(feature="std")]
 use embedded_graphics_core::{
-    geometry::Size,
+    geometry::{Size, Dimensions},
     pixelcolor::BinaryColor,
 };
 use embedded_graphics_simulator::{
@@ -99,6 +99,7 @@ impl DesktopSimulator {
     pub fn new(init_state: &AppStateInit, h: &mut HALHandle) -> Self {
         let pin = Pincode::new(&mut h.rng, false);
         let display = SimulatorDisplay::new(Size::new(SCREEN_SIZE_X, SCREEN_SIZE_Y));
+
         let transaction = match init_state.nfc {
             NFCState::Empty => String::new(),
             NFCState::Transaction => String::from("Hello, this is a transaction!"),
@@ -239,7 +240,7 @@ fn main() {
         .theme(BinaryColorTheme::Inverted)
         .build();
     let mut window = Window::new("Hello world", &output_settings); //.show_static(&display);
-    
+
     let mut update = uistate::UpdateRequest::new();
     update.set_slow();
 
