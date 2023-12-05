@@ -3,14 +3,15 @@
 use efm32pg23_fix::Peripherals;
 
 use crate::peripherals::{
-    adc::init_adc, 
-    cmu::init_cmu, 
-    eusart::init_eusart, 
+    adc::init_adc,
+    cmu::init_cmu,
+    eusart::init_eusart,
     gpio_pins::init_gpio,
     i2c::init_i2c,
     ldma::{init_ldma, NfcXferBlock},
     timers::init_timers,
     usart::init_usart,
+    debug_eusart::init_debug_eusart,
 };
 use crate::devices::psram::psram_reset;
 use crate::devices::flash::{flash_init,flash_sleep};
@@ -25,6 +26,7 @@ pub fn init_peripherals(peripherals: &mut Peripherals, nfc_descriptor_address: *
 
     // Setting up USART0, for epaper display and flash memory
     init_usart(peripherals);
+    init_debug_eusart(peripherals);
 
     // ...and let flash to sleep
     flash_init(peripherals);
@@ -37,7 +39,7 @@ pub fn init_peripherals(peripherals: &mut Peripherals, nfc_descriptor_address: *
 
     // Setting up peripherals for NFC capture
     init_ldma(peripherals, nfc_descriptor_address);
-    
+
     // TODO: SET UP NVIC for LDMA!
 
     // set up TIMER0 for NFC reading

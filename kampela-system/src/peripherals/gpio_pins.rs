@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 
 use cortex_m::asm::delay;
+use cortex_m_semihosting::debug;
 use efm32pg23_fix::GPIO_S;
 
 // PA
@@ -19,6 +20,11 @@ pub const POW_PIN: u8 = 9;
 
 pub const TOUCH_INT_PIN: u8 = 1;
 pub const SPI_BUSY_PIN: u8 = 4;
+
+#[deprecated(since="0.0.0", note = "!!! Please, DO NOT MERGE INTO MAIN BRANCH !!!")]
+pub const DEBUG_TX_PIN: u8 = 5;
+#[deprecated(since="0.0.0", note = "!!! Please, DO NOT MERGE INTO MAIN BRANCH !!!")]
+pub const DEBUG_RX_PIN: u8 = 6;
 
 // PC
 pub const FLASH_CS_PIN: u8 = 0;
@@ -235,6 +241,32 @@ gpio_pin!(
     NFC_PIN
 );
 
+
+
+
+gpio_pin!(
+    /// Set debug TX pin:
+    /// Clear debug TX pin:
+    /// port B, pin [`DEBUG_TX_PIN`].
+    debug_tx_pin_set,
+    debug_tx_pin_clear,
+    portb_dout,
+    DEBUG_TX_PIN
+);
+
+gpio_pin!(
+    /// Set debug RX pin:
+    /// Clear debug RX pin:
+    /// port B, pin [`DEBUG_RX_PIN`].
+    debug_rx_pin_set,
+    debug_rx_pin_clear,
+    portb_dout,
+    DEBUG_RX_PIN
+);
+
+
+
+
 /// GPIO initializations
 pub fn init_gpio(gpio: &mut GPIO_S) {
     map_gpio(gpio);
@@ -267,6 +299,9 @@ fn map_gpio(gpio: &mut GPIO_S) {
             w_reg
                 .mode1().input() // interrupts from display sensor
                 .mode4().input() // BUSY spi
+
+                .mode5().pushpull() // Debug TX pin
+                .mode6().inputpull() // Debug RX pin
     });
     gpio
         .portc_model
@@ -310,6 +345,9 @@ fn set_gpio_pins(gpio: &mut GPIO_S) {
     psram_mosi_clear(gpio);
     psram_sck_clear(gpio);
     nfc_pin_clear(gpio);
+    debug_tx_pin_clear(gpio);
+    debug_rx_pin_clear(gpio);
+
 }
 
 /// Set up external interrupt pins (used to get touch events from touch pad)

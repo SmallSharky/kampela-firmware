@@ -7,3 +7,4 @@ pub mod ldma;
 pub mod se_command;
 pub mod timers;
 pub mod usart;
+pub mod debug_eusart;

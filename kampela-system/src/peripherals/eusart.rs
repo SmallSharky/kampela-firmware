@@ -67,13 +67,13 @@ pub fn init_eusart(peripherals: &mut Peripherals) {
     {
         while peripherals.EUSART2_S.syncbusy.read().bits().ne(&0) {}
     }
-    
+
     // reset EUSART
     eusart_reset(peripherals);
 
     // calculate clkdiv
     let clkdiv: u8 = (19_000_000/BAUDRATE_EUSART - 1).try_into().expect("BAURATE_EUSART is expected to not exceed and be comparable to reference frequency");
-    
+
     // configure
     peripherals
         .EUSART2_S
@@ -148,7 +148,7 @@ fn eusart_disable(peripherals: &mut Peripherals) {
         .en
         .read()
         .en()
-        .bit_is_set() 
+        .bit_is_set()
     {
         if peripherals.EUSART2_S.cfg0.read().sync().bit_is_clear() | peripherals.EUSART2_S.cfg2.read().master().bit_is_set() {
             // disable TX and RX
@@ -160,12 +160,12 @@ fn eusart_disable(peripherals: &mut Peripherals) {
             // wait for TX and RX enable status to go low
             while peripherals.EUSART2_S.status.read().rxens().bit_is_set() | peripherals.EUSART2_S.status.read().txens().bit_is_set() {}
         }
-        
+
         peripherals
             .EUSART2_S
             .en
             .write(|w_reg| w_reg.en().clear_bit());
-        
+
         // wait for disabling to clear
         while peripherals.EUSART2_S.en.read().disabling().bit_is_set() {}
     }

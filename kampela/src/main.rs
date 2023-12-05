@@ -108,6 +108,13 @@ fn LDMA() {
 const SIGNING_CTX: &[u8] = b"substrate";
 
 
+unsafe fn write_debug_eusart(inp: u8) {
+    in_free(|peripherals| {
+        // peripherals.EUSART1_S.txdata.write(b'\n'.into());
+        peripherals.EUSART1_S.txdata.write(|w_reg| w_reg.txdata().bits(inp.into()));
+    });
+}
+
 #[entry]
 fn main() -> ! {
     {
@@ -167,7 +174,7 @@ fn main() -> ! {
     //let pair_derived = Keypair::from_bytes(ALICE_KAMPELA_KEY).unwrap();
 
     // Development: erase seed when Pilkki can't
-  
+
 /*
     in_free(|peripherals| {
             flash_wakeup(peripherals);
@@ -191,12 +198,25 @@ fn main() -> ! {
 
     let mut nfc = NfcReceiver::new(&nfc_buffer, ui.state.platform.public());
 
+    let mut debug_data_char: u8 = b'a';
+
     loop {
+        unsafe {
+            write_debug_eusart(debug_data_char);
+        }
+
+        if debug_data_char>b'z' {
+            debug_data_char = b'a';
+        } else {
+            debug_data_char += 1;
+        }
         adc.advance(());
         let voltage = adc.read();
         ui.advance(adc.read());
         let nfc_result = nfc.advance(voltage);
-        
+
+
+
         if nfc_result.is_some() {
             match nfc_result.unwrap() {
                 NfcResult::KampelaStop => {},
