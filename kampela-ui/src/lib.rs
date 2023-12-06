@@ -24,5 +24,11 @@ extern crate std;
 
 pub mod data_state;
 
-mod widgets;
+// pub mod widgets;
 pub mod display;
+
+mod widget;
+mod textbox;
+mod stateful;
+mod interactive;
+mod drawable;

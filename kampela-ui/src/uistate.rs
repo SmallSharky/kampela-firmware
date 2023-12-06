@@ -37,16 +37,10 @@ use crate::seed_entry::SeedEntryState;
 
 use crate::restore_or_generate;
 
-// mod wee {
-//     pub use crate::widgets::widget::Widget;
-//     pub use crate::widgets::textbox::TextBox;
-//     // pub mod widget;
-//     // pub mod textbox;
-//     // pub mod interactive;
-//     // pub mod drawable;
-// }
 
-// use wee::*;
+
+use crate::textbox::TextBox;
+use crate::widget::Widget;
 
 use rand::{CryptoRng, Rng};
 
@@ -297,15 +291,15 @@ impl <P: Platform> UIState<P> {
     pub fn render<D>(&mut self) -> Result<(),()>
     {
         let display = self.platform.display();
-        display.draw();
+        // display.draw();
 
         // let clear = PrimitiveStyle::with_fill(BinaryColor::Off);
         // display.bounding_box().into_styled(clear).draw(display)?;
 
         // let center = ((display.bounding_box().size.width/2) as u16, (display.bounding_box().size.height/2) as u16);
 
-        // let textbox = TextBox::new("kampela".into(), (100, 100));
-        // textbox.draw(display, (center.0-50, center.1-50))?;
+        let textbox = TextBox::new(">>CUM<< PELA".into(), (100, 100));
+        textbox.draw(display, (40, 40));
         // match self.screen {
         //     Screen::PinEntry => {
         //         self.platform.draw_pincode()?;

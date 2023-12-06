@@ -45,6 +45,14 @@ use data_state::{AppStateInit, NFCState, DataInit, StorageState};
 mod transaction;
 mod qr;
 
+
+mod widget;
+mod textbox;
+mod stateful;
+mod interactive;
+mod drawable;
+
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
