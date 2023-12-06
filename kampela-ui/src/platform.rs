@@ -7,7 +7,12 @@ use std::{format, string::String, vec::Vec};
 
 // use crate::stdwrap::*;
 
-use embedded_graphics::{pixelcolor::BinaryColor, prelude::{DrawTarget, Point}};
+// use embedded_graphics::{pixelcolor::BinaryColor, prelude::{DrawTarget, Point}};
+// mod wee {
+pub use crate::display::DisplayDevice;
+// }
+// use wee::*;
+
 use rand::{CryptoRng, Rng};
 
 use hmac::Hmac;
@@ -42,7 +47,8 @@ pub trait Platform {
     type Rng<'a>: Rng + Sized + CryptoRng;
 
     /// Device-specific screen canvas abstraction
-    type Display: DrawTarget<Color = BinaryColor>;
+    type Display: DisplayDevice;
+
 
     /// RNG getter
     fn rng<'a>(h: &'a mut Self::HAL) -> Self::Rng<'a>;
@@ -53,8 +59,9 @@ pub trait Platform {
     /// Device-specific "global" storage and management of pincode state RW
     fn pin_mut(&mut self) -> &mut Pincode;
 
-    /// Getter for canvas
     fn display(&mut self) -> &mut Self::Display;
+    /// Getter for canvas
+    // fn display(&mut self) -> &mut Self::Display;
 
     /// Put entropy in flash
     fn store_entropy(&mut self);
@@ -63,7 +70,7 @@ pub trait Platform {
     fn read_entropy(&mut self);
 
     /// Getter for pincode and canvas simultaneously (they should be independent)
-    fn pin_display(&mut self) -> (&mut Pincode, &mut Self::Display);
+    // fn pin_display(&mut self) -> (&mut Pincode, &mut Self::Display);
 
     /// Set new seed
     fn set_entropy(&mut self, e: &[u8]);
@@ -72,19 +79,19 @@ pub trait Platform {
     fn entropy(&self) -> &[u8];
 
     /// Getter for seed and canvas
-    fn entropy_display(&mut self) -> (&[u8], &mut Self::Display);
+    // fn entropy_display(&mut self) -> (&[u8], &mut Self::Display);
 
     fn set_address(&mut self, addr: [u8; 76]);
 
     fn set_transaction(&mut self, call: String, extensions: String, signature: [u8; 130]);
 
-    fn call(&mut self) -> Option<(&str, &mut Self::Display)>;
+    // fn call(&mut self) -> Option<(&str, &mut Self::Display)>;
 
-    fn extensions(&mut self) -> Option<(&str, &mut Self::Display)>;
+    // fn extensions(&mut self) -> Option<(&str, &mut Self::Display)>;
 
-    fn signature(&mut self) -> (&[u8; 130], &mut Self::Display);
+    // fn signature(&mut self) -> (&[u8; 130], &mut Self::Display);
 
-    fn address(&mut self) -> (&[u8; 76], &mut Self::Display);
+    // fn address(&mut self) -> (&[u8; 76], &mut Self::Display);
 
     //----derivatives----
 
@@ -98,54 +105,54 @@ pub trait Platform {
         self.set_entropy(&Self::generate_seed_entropy(h));
     }
 
-    fn handle_pin_event(&mut self, point: Point, h: &mut Self::HAL) -> Result<EventResult, <Self::Display as DrawTarget>::Error> {
-        let (a, b) = self.pin_display();
-        a.handle_event(point, &mut Self::rng(h), b)
-    }
+    // fn handle_pin_event(&mut self, point: Point, h: &mut Self::HAL) -> Result<EventResult, <Self::Display as DrawTarget>::Error> {
+    //     let (a, b) = self.pin_display();
+    //     a.handle_event(point, &mut Self::rng(h), b)
+    // }
 
-    fn handle_pin_event_repeat(&mut self, point: Point, h: &mut Self::HAL) -> Result<EventResult, <Self::Display as DrawTarget>::Error> {
-        let (a, b) = self.pin_display();
-        a.handle_event_repeat(point, &mut Self::rng(h), b)
-    }
+    // fn handle_pin_event_repeat(&mut self, point: Point, h: &mut Self::HAL) -> Result<EventResult, <Self::Display as DrawTarget>::Error> {
+    //     let (a, b) = self.pin_display();
+    //     a.handle_event_repeat(point, &mut Self::rng(h), b)
+    // }
 
-    fn draw_pincode(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        let (p, d) = self.pin_display();
-        p.draw(d)
-    }
+    // fn draw_pincode(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     let (p, d) = self.pin_display();
+    //     p.draw(d)
+    // }
 
-    fn draw_backup(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        let (s, d) = self.entropy_display();
-        draw_backup_screen(s, d)
-    }
+    // fn draw_backup(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     let (s, d) = self.entropy_display();
+    //     draw_backup_screen(s, d)
+    // }
 
-    fn draw_transaction(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        if let Some((s, d)) = self.call() {
-            transaction::draw(s, d)
-        } else {
-            Ok(())
-        }
-    }
+    // fn draw_transaction(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     if let Some((s, d)) = self.call() {
+    //         transaction::draw(s, d)
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
 
-    fn draw_extensions(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        if let Some((s, d)) = self.extensions() {
-            transaction::draw(s, d)
-        } else {
-            Ok(())
-        }
-    }
+    // fn draw_extensions(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     if let Some((s, d)) = self.extensions() {
+    //         transaction::draw(s, d)
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
 
-    fn draw_signature_qr(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        let (s, d) = self.signature();
-        qr::draw(s, d)
-    }
+    // fn draw_signature_qr(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     let (s, d) = self.signature();
+    //     qr::draw(s, d)
+    // }
 
-    fn draw_address_qr(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
-        //let (s, d) = self.address();
+    // fn draw_address_qr(&mut self) -> Result<(), <Self::Display as DrawTarget>::Error> {
+    //     //let (s, d) = self.address();
 
-        let line1 = format!("substrate:0x{}", hex::encode(self.public().expect("no entropy stored, no address could be shown")));
+    //     let line1 = format!("substrate:0x{}", hex::encode(self.public().expect("no entropy stored, no address could be shown")));
 
-        qr::draw(&line1.as_bytes(), self.display())
-    }
+    //     qr::draw(&line1.as_bytes(), self.display())
+    // }
 
     fn pair(&self) -> Option<Keypair> {
         let e = self.entropy();

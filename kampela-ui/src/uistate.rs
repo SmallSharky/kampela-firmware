@@ -29,6 +29,7 @@ use embedded_graphics_core::{
 };
 
 use crate::display_def::*;
+use crate::display::DisplayDevice;
 
 use crate::platform::{NfcTransaction, Platform};
 
@@ -36,16 +37,16 @@ use crate::seed_entry::SeedEntryState;
 
 use crate::restore_or_generate;
 
-mod wee {
-    pub use crate::widgets::widget::Widget;
-    pub use crate::widgets::textbox::TextBox;
-    // pub mod widget;
-    // pub mod textbox;
-    // pub mod interactive;
-    // pub mod drawable;
-}
+// mod wee {
+//     pub use crate::widgets::widget::Widget;
+//     pub use crate::widgets::textbox::TextBox;
+//     // pub mod widget;
+//     // pub mod textbox;
+//     // pub mod interactive;
+//     // pub mod drawable;
+// }
 
-use wee::*;
+// use wee::*;
 
 use rand::{CryptoRng, Rng};
 
@@ -141,18 +142,18 @@ pub enum Screen {
 
 impl <P: Platform> UIState<P> {
     pub fn new(mut platform: P) -> Self {
-        platform.read_entropy();
-        if platform.entropy_display().0.is_empty() {
+        // platform.read_entropy();
+        // if platform.entropy_display().0.is_empty() {
             UIState {
                 screen: Screen::OnboardingRestoreOrGenerate,
                 platform: platform,
             }
-        } else {
-            UIState {
-                screen: Screen::QRAddress,
-                platform: platform,
-            }
-        }
+        // } else {
+        //     UIState {
+        //         screen: Screen::QRAddress,
+        //         platform: platform,
+        //     }
+        // }
     }
 
     pub fn is_initial(&self) -> bool {
@@ -178,23 +179,23 @@ impl <P: Platform> UIState<P> {
         &mut self,
         point: Point,
         h: &mut <P as Platform>::HAL,
-    ) -> Result<UpdateRequest, <<P as Platform>::Display as DrawTarget>::Error>
+    ) -> Result<UpdateRequest, ()>
     {
         let fast_display = self.platform.display();
         let mut out = UpdateRequest::new();
         let mut new_screen = None;
         match self.screen {
             Screen::PinEntry => {
-                let res = self.platform.handle_pin_event(point, h)?;
-                out = res.request;/*
+                // let res = self.platform.handle_pin_event(point, h);
+                // out = res.request;/*
                 // TODO this properly, expo hack
-                new_screen = match res.state {
-                    Some(a) => match self.platform.transaction() {
-                        Some(_) => Some(Screen::ShowTransaction),
-                        None => Some(a),
-                    },
-                    None => None,
-                };*/
+                // new_screen = match res.state {
+                //     Some(a) => match self.platform.transaction() {
+                //         Some(_) => Some(Screen::ShowTransaction),
+                //         None => Some(a),
+                //     },
+                //     None => None,
+                // };*/
             }
             Screen::OnboardingRestoreOrGenerate => match point.x {
                 0..=100 => {
@@ -209,13 +210,13 @@ impl <P: Platform> UIState<P> {
                 _ => {},
             },
             Screen::OnboardingRestore(ref mut a) => {
-                let mut seed = None;
-                let res = a.handle_event(point, &mut seed, fast_display)?;
-                if let Some(b) = seed {
-                    self.platform.set_entropy(&b);
-                }
-                out = res.request;
-                new_screen = res.state;
+                // let mut seed = None;
+                // let res = a.handle_event(point, &mut seed, fast_display)?;
+                // if let Some(b) = seed {
+                //     self.platform.set_entropy(&b);
+                // }
+                // out = res.request;
+                // new_screen = res.state;
             },
             Screen::OnboardingBackup => {
                 self.platform.store_entropy();
@@ -223,9 +224,9 @@ impl <P: Platform> UIState<P> {
                 out.set_slow();
             },
             Screen::PinRepeat => {
-                let res = self.platform.handle_pin_event_repeat(point, h)?;
-                out = res.request;
-                new_screen = res.state;
+                // let res = self.platform.handle_pin_event_repeat(point, h)?;
+                // out = res.request;
+                // new_screen = res.state;
             },
             Screen::ShowTransaction => match point.x {
                 150..=300 => {
@@ -293,16 +294,18 @@ impl <P: Platform> UIState<P> {
     }
 
     /// Display new screen state; should be called only when needed, is slow
-    pub fn render<D>(&mut self) -> Result<(), <<P as Platform>::Display as DrawTarget>::Error>
+    pub fn render<D>(&mut self) -> Result<(),()>
     {
         let display = self.platform.display();
-        let clear = PrimitiveStyle::with_fill(BinaryColor::Off);
-        display.bounding_box().into_styled(clear).draw(display)?;
+        display.draw();
 
-        let center = ((display.bounding_box().size.width/2) as u16, (display.bounding_box().size.height/2) as u16);
+        // let clear = PrimitiveStyle::with_fill(BinaryColor::Off);
+        // display.bounding_box().into_styled(clear).draw(display)?;
 
-        let textbox = TextBox::new("kampela".into(), (100, 100));
-        textbox.draw(display, (center.0-50, center.1-50))?;
+        // let center = ((display.bounding_box().size.width/2) as u16, (display.bounding_box().size.height/2) as u16);
+
+        // let textbox = TextBox::new("kampela".into(), (100, 100));
+        // textbox.draw(display, (center.0-50, center.1-50))?;
         // match self.screen {
         //     Screen::PinEntry => {
         //         self.platform.draw_pincode()?;

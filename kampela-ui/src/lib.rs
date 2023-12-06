@@ -25,4 +25,4 @@ extern crate std;
 pub mod data_state;
 
 mod widgets;
-mod stdwrap;
+pub mod display;

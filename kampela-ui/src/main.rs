@@ -7,9 +7,13 @@ use embedded_graphics_core::{
 use embedded_graphics_simulator::{
     BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
+
+mod display;
+
 use rand::{rngs::ThreadRng, thread_rng};
 use std::{thread::sleep, time::Duration};
 use clap::Parser;
+use crate::display::DisplayDevice;
 
 #[macro_use]
 extern crate lazy_static;
@@ -84,9 +88,23 @@ impl HALHandle {
 }
 
 #[derive(Debug)]
+struct ActualDisplay {
+    pub display: SimulatorDisplay<BinaryColor>,
+}
+
+impl DisplayDevice for ActualDisplay {
+    type Target = SimulatorDisplay<BinaryColor>;
+
+    fn get_display_target(&mut self) -> &mut Self::Target {
+        &mut self.display
+    }
+}
+
+
+#[derive(Debug)]
 struct DesktopSimulator {
     pin: Pincode,
-    display: SimulatorDisplay<BinaryColor>,
+    display: ActualDisplay,
     entropy: Vec<u8>,
     address: Option<[u8; 76]>,
     transaction: String,
@@ -114,7 +132,7 @@ impl DesktopSimulator {
         };
         Self {
             pin: pin,
-            display: display,
+            display: ActualDisplay{display},
             entropy: Vec::new(),
             address: None,
             transaction: transaction,
@@ -128,7 +146,7 @@ impl DesktopSimulator {
 impl Platform for DesktopSimulator {
     type HAL = HALHandle;
     type Rng<'a> = &'a mut ThreadRng;
-    type Display = SimulatorDisplay<BinaryColor>;
+    type Display = ActualDisplay;
 
     fn rng<'a>(h: &'a mut Self::HAL) -> Self::Rng<'a> {
         &mut h.rng
@@ -159,9 +177,9 @@ impl Platform for DesktopSimulator {
         println!("entropy read from emulated storage: {:?}", self.entropy);
     }
 
-    fn pin_display(&mut self) -> (&mut Pincode, &mut Self::Display) {
-        (&mut self.pin, &mut self.display)
-    }
+    // fn pin_display(&mut self) -> (&mut Pincode, &mut Self::Display) {
+    //     (&mut self.pin, &mut self.display)
+    // }
 
     fn set_entropy(&mut self, e: &[u8]) {
         self.entropy = e.to_vec();
@@ -171,9 +189,9 @@ impl Platform for DesktopSimulator {
         &self.entropy
     }
 
-    fn entropy_display(&mut self) -> (&[u8], &mut Self::Display) {
-        (&self.entropy, &mut self.display)
-    }
+    // fn entropy_display(&mut self) -> (&[u8], &mut Self::Display) {
+    //     (&self.entropy, &mut self.display)
+    // }
 
     fn set_address(&mut self, addr: [u8; 76]) {
         self.address = Some(addr);
@@ -185,37 +203,37 @@ impl Platform for DesktopSimulator {
         self.signature = Some(signature);
     }
 
-    fn call(&mut self) -> Option<(&str, &mut Self::Display)> {
-        if self.transaction != "" {
-            Some((&self.transaction, &mut self.display))
-        } else {
-            None
-        }
-    }
+    // fn call(&mut self) -> Option<(&str, &mut Self::Display)> {
+    //     if self.transaction != "" {
+    //         Some((&self.transaction, &mut self.display))
+    //     } else {
+    //         None
+    //     }
+    // }
 
-    fn extensions(&mut self) -> Option<(&str, &mut Self::Display)> {
-        if self.extensions != "" {
-            Some((&self.extensions, &mut self.display))
-        } else {
-            None
-        }
-    }
+    // fn extensions(&mut self) -> Option<(&str, &mut Self::Display)> {
+    //     if self.extensions != "" {
+    //         Some((&self.extensions, &mut self.display))
+    //     } else {
+    //         None
+    //     }
+    // }
 
-    fn signature(&mut self) -> (&[u8; 130], &mut Self::Display) {
-        if let Some(ref a) = self.signature {
-            (a, &mut self.display)
-        } else {
-            panic!("qr not ready!");
-        }
-    }
+    // fn signature(&mut self) -> (&[u8; 130], &mut Self::Display) {
+    //     if let Some(ref a) = self.signature {
+    //         (a, &mut self.display)
+    //     } else {
+    //         panic!("qr not ready!");
+    //     }
+    // }
 
-    fn address(&mut self) -> (&[u8; 76], &mut Self::Display) {
-        if let Some(ref a) = self.address {
-            (a, &mut self.display)
-        } else {
-            panic!("address qr not ready!");
-        }
-    }
+    // fn address(&mut self) -> (&[u8; 76], &mut Self::Display) {
+    //     if let Some(ref a) = self.address {
+    //         (a, &mut self.display)
+    //     } else {
+    //         panic!("address qr not ready!");
+    //     }
+    // }
 }
 
 
@@ -253,22 +271,25 @@ fn main() {
     loop {
         // display event; it would be delayed
         if update.read_fast() {
-            window.update(state.display());
+            window.update(&mut state.display().display);
+            // window.update(state.display());
             println!("skip {} events in fast update", window.events().count());
             //no-op for non-EPD
         }
         if update.read_slow() {
             match state.render::<SimulatorDisplay<BinaryColor>>() {
                     Ok(()) => (),
-                    Err(e) => println!("{:?}", e),
+                    Err(e) => println!("ERROR {:?}", e),
                 };
             sleep(SLOW_UPDATE_TIME);
-            window.update(state.display());
+            window.update(&mut state.display().display);
+            // window.update(state.display());
             println!("skip {} events in slow update", window.events().count());
         }
 
         // this collects ui events, do not remove or simulator will crash
-        window.update(state.display());
+        window.update(&mut state.display().display);
+        // window.update(state.display());
 
         // handle input (only pushes are valid in Kampela)
         for event in window.events() {
@@ -280,7 +301,7 @@ fn main() {
                     println!("{}", point);
                         match state.handle_event::<SimulatorDisplay<BinaryColor>>(point, &mut h) {
                             Ok(a) => update = a,
-                            Err(e) => println!("{e}"),
+                            Err(e) => println!("ERROR"),
                         };
                 }
                 SimulatorEvent::Quit => return,
